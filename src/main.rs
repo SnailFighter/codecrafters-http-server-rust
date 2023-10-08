@@ -89,7 +89,9 @@ fn parse_request_header(mut stream: &TcpStream) ->Request {
 fn pre_handle_path(mut path: String, mut req: Request) -> Request {
     if path.is_empty() {
         req.path = "/".to_string();
-    };
+    }else {
+        req.path = path.trim().to_string();
+    }
     req
 }
 fn dispatch(req: Request, stream: TcpStream) {
