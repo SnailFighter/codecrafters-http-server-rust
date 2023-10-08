@@ -105,8 +105,8 @@ fn dispatch(req: Request, stream: TcpStream) {
     } else if path=="/echo/" {
         format!(
             "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}\r\n",
-            "abc".len(),
-            "abc"
+            path.len(),
+            path
         )
     }else if path=="/user-agent/" {
         format!(
