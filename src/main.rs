@@ -113,6 +113,7 @@ fn dispatch(req: Request, stream: TcpStream) {
     }else {
          "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
     };
+    println!("{}", resp_content);
     response(stream, resp_content.as_str());
 }
 
