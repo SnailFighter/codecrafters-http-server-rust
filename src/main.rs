@@ -91,9 +91,6 @@ fn parse_request_header(mut stream: &TcpStream) ->Request {
 fn pre_handle_path(mut path: String, mut req: Request) -> Request {
     if path.is_empty() {
         req.path = "/".to_string();
-    } else if !path.ends_with("/") {
-        path.push_str("/");
-        req.path = path;
     };
     req
 }
@@ -102,13 +99,14 @@ fn dispatch(req: Request, stream: TcpStream) {
     let resp_content=
     if path == "/" {
         "HTTP/1.1 200 \r\n\r\n".to_string()
-    } else if path=="/echo/" {
+    } else if path.starts_with("/echo/") {
+        let val = path.strip_prefix("/echo/").unwrap();
         format!(
             "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}\r\n",
-            path.len(),
-            path
+            val.len(),
+            val
         )
-    }else if path=="/user-agent/" {
+    }else if path.starts_with("/user-agent/") {
         format!(
             "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}\r\n",
             req.user_agent.len(),
