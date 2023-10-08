@@ -1,7 +1,7 @@
 // Uncomment this block to pass the first stage
 use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
-use itertools::Itertools;
+use std::thread;
 
 
 struct Request {
@@ -134,9 +134,12 @@ fn main(){
     for stream in listener.incoming() {
          match stream {
             Ok(mut _stream) => {
-                let req = parse_request_header(&_stream);
-                let req1 = pre_handle_path(req.path.clone(), req);
-                dispatch(req1, _stream);
+                thread::spawn(move ||{
+                    let req = parse_request_header(&_stream);
+                    let req1 = pre_handle_path(req.path.clone(), req);
+                    dispatch(req1, _stream);
+                });
+
             }
             Err(e) => {
                 println!("error: {}", e);
