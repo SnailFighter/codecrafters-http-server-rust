@@ -104,7 +104,7 @@ fn dispatch(req: Request, stream: TcpStream) {
             val.len(),
             val
         )
-    }else if path.starts_with("/user-agent/") {
+    }else if path.starts_with("/user-agent") {
         format!(
             "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}\r\n",
             req.user_agent.len(),
