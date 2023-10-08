@@ -71,8 +71,6 @@ fn parse_request_header(mut stream: &TcpStream) ->Request {
             if item.contains("User-Agent") {
 
                 user_agent = item.split_once(":").unwrap().1.to_string();
-
-
             }
 
         }
