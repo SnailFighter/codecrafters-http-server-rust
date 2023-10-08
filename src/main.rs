@@ -10,6 +10,7 @@ struct Request {
     ip              :   String,
     port            :   u32,
     path            :   String,
+    user_agent      :   String,
 }
 
 fn if_data_read_end(buf: &Vec<u8>) ->bool {
@@ -23,7 +24,7 @@ fn if_data_read_end(buf: &Vec<u8>) ->bool {
 }
 
 
-fn parse_request(mut stream: &TcpStream) ->Request {
+fn parse_request_header(mut stream: &TcpStream) ->Request {
     let get   ="get";
     let post  = "post";
     let mut ip:         String = "".to_string();
@@ -31,6 +32,7 @@ fn parse_request(mut stream: &TcpStream) ->Request {
     let mut method:     String = "".to_string();
     let mut http_version:    String = "".to_string();
     let mut path:           String = "".to_string();
+    let mut user_agent:     String ="".to_string();
 
     println!("accepted new connection");
     let mut data = vec![0u8,0];
@@ -48,7 +50,7 @@ fn parse_request(mut stream: &TcpStream) ->Request {
         }
     };
     let request = String::from_utf8(data).unwrap();
-    let v: Vec<&str> = request.split("\r\n").collect_vec();
+    let v: Vec<&str> = request.lines().map(|line|line).collect();
     for item in v {
         if !item.is_empty()  {
             if item.to_lowercase().contains(get) {
@@ -61,10 +63,16 @@ fn parse_request(mut stream: &TcpStream) ->Request {
                 http_version = version.unwrap().to_string();
                 path = item.split_whitespace().nth(1).unwrap_or("/").to_string();
             }
-            if item.contains("HOST") {
+            if item.contains("Host") {
                 ip = item.split(":").nth(1).unwrap().to_string();
                 let port_str = item.split(":").nth(2).unwrap();
                 port = port_str.parse().unwrap_or(0);
+            }
+            if item.contains("User-Agent") {
+
+                user_agent = item.split_once(":").unwrap().1.to_string();
+
+
             }
 
         }
@@ -76,6 +84,7 @@ fn parse_request(mut stream: &TcpStream) ->Request {
         ip,
         port,
         path,
+        user_agent,
     }
 }
 
@@ -88,7 +97,8 @@ fn pre_handle_path(mut path: String, mut req: Request) -> Request {
     };
     req
 }
-fn dispatch(path: String, stream: TcpStream) {
+fn dispatch(req: Request, stream: TcpStream) {
+    let path = req.path;
     let resp_content=
     if path == "/" {
         "HTTP/1.1 200 \r\n\r\n".to_string()
@@ -99,6 +109,12 @@ fn dispatch(path: String, stream: TcpStream) {
             "abc"
         )
 
+    }else if path=="/user-agent/" {
+        format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}\r\n",
+            req.user_agent.len(),
+            req.user_agent
+        )
     }else {
          "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
     };
@@ -120,9 +136,9 @@ fn main(){
     for stream in listener.incoming() {
          match stream {
             Ok(mut _stream) => {
-                let req = parse_request(&_stream);
+                let req = parse_request_header(&_stream);
                 let req1 = pre_handle_path(req.path.clone(), req);
-                dispatch(req1.path, _stream);
+                dispatch(req1, _stream);
             }
             Err(e) => {
                 println!("error: {}", e);
@@ -130,3 +146,5 @@ fn main(){
        }
      }
 }
+
+
