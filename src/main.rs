@@ -1,8 +1,12 @@
 // Uncomment this block to pass the first stage
 use std::net::{TcpListener, TcpStream};
-use std::io::{Read, Write};
+use std::io::{ErrorKind, Read, Write};
 use std::thread;
+use std::fs::File;
+use std::env;
+use itertools::Itertools;
 
+static mut CONFIG: Vec<EnvParam> = Vec::new();
 
 struct Request {
     method          :   String,
@@ -11,6 +15,17 @@ struct Request {
     port            :   u32,
     path            :   String,
     user_agent      :   String,
+}
+
+struct EnvParam {
+    name            :   String,
+    value           :   String,
+}
+
+impl EnvParam {
+    fn new() -> EnvParam {
+        EnvParam{ name: "".to_string(), value: "".to_string() }
+    }
 }
 
 fn if_data_read_end(buf: &Vec<u8>) ->bool {
@@ -23,6 +38,56 @@ fn if_data_read_end(buf: &Vec<u8>) ->bool {
     };
 }
 
+/*
+  format: --command command-value
+  for example:  --directory <directory>
+  but if lost the value, we still allow it continue to run, such as
+  --command1 --command2 command-value2.
+  it losts the command-value1
+  or  command-value1 --command2 command-value2
+  it losts the first command name
+ */
+fn parse_env_params() ->Vec<EnvParam>{
+    let params: Vec<String> = env::args().collect();
+    println!("{:?}", params);
+    if params.len()<1 {
+        return vec![];
+    }
+    let mut all_param = Vec::<EnvParam>::new();
+    let mut is_command_name = false;
+    let mut iter = params.iter();
+    for (i,x) in iter.enumerate() {
+        if x.starts_with("--") {
+            let mut env_param = EnvParam::new();
+            env_param.name = x.to_string();
+            all_param.push(env_param);
+            is_command_name = true;
+        }else {
+            let mut env_param = all_param.pop().unwrap_or_else(|| {
+                EnvParam::new()
+            });
+            env_param.value = x.to_string();
+            all_param.push(env_param);
+            is_command_name = false;
+        }
+    }
+    all_param
+}
+
+fn read_file(file_path:String) -> Result<String,i32> {
+    let mut file_result = File::open(file_path.clone());
+    let mut content = String::new();
+    match file_result {
+        Ok(mut f)=>{
+            let size = f.read_to_string(&mut content).unwrap_or(0);
+            Ok(content)
+        },
+        Err(e)=>{
+            eprintln!("can open the file under the path {}", file_path);
+            Err(500)
+        }
+    }
+}
 
 fn parse_request_header(mut stream: &TcpStream) ->Request {
     let get   ="get";
@@ -96,24 +161,45 @@ fn pre_handle_path(mut path: String, mut req: Request) -> Request {
 }
 fn dispatch(req: Request, stream: TcpStream) {
     let path = req.path;
-    let resp_content=
+    let mut resp_content = "".to_string();
     if path == "/" {
-        "HTTP/1.1 200 \r\n\r\n".to_string()
+        resp_content =  "HTTP/1.1 200 \r\n\r\n".to_string();
     } else if path.starts_with("/echo/") {
         let val = path.strip_prefix("/echo/").unwrap();
-        format!(
+        resp_content = format!(
             "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}\r\n",
             val.len(),
             val
-        )
+        );
     }else if path.starts_with("/user-agent") {
-        format!(
+        resp_content = format!(
             "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}\r\n",
             req.user_agent.len(),
             req.user_agent
-        )
+        );
+    }else if path.starts_with("/files"){
+        let c:String;
+        unsafe {
+            for e in CONFIG.iter() {
+                if e.name == "--directory"  {
+                    if !e.value.is_empty(){
+                        let content = read_file(e.value.clone()).unwrap();
+                        resp_content = format!(
+                            "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n{}\r\n",
+                            content.len(),
+                            content
+                        );
+                    }else {
+                        resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
+                    };
+
+                };
+
+            };
+        };
+
     }else {
-         "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
+        resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string();
     };
     println!("{}", resp_content);
     response(stream, resp_content.as_str());
@@ -125,12 +211,14 @@ fn response(mut stream:TcpStream, resp:&str){
 }
 
 fn main(){
+    unsafe { CONFIG = parse_env_params(); }
+
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     println!("Logs from your program will appear here!");
     // Uncomment this block to pass the first stage
      let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
      //listener.set_nonblocking(true).unwrap();
-    //dispatch
+     //dispatch
     for stream in listener.incoming() {
          match stream {
             Ok(mut _stream) => {
