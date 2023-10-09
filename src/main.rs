@@ -178,12 +178,15 @@ fn dispatch(req: Request, stream: TcpStream) {
             req.user_agent
         );
     }else if path.starts_with("/files"){
-        let c:String;
+        let path_param = path.split("/").collect_vec();
+        let file_name = if path_param.len()>1 {
+            path_param[2]
+        }else { "" };
         unsafe {
             for e in CONFIG.iter() {
                 if e.name == "--directory"  {
                     if !e.value.is_empty(){
-                        let content = read_file(e.value.clone()).unwrap();
+                        let content = read_file(e.value.clone()+file_name).unwrap();
                         resp_content = format!(
                             "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n{}\r\n",
                             content.len(),
@@ -227,13 +230,12 @@ fn main(){
                     let req1 = pre_handle_path(req.path.clone(), req);
                     dispatch(req1, _stream);
                 });
-
             }
             Err(e) => {
                 println!("error: {}", e);
+            }
          }
-       }
-     }
+    }
 }
 
 
