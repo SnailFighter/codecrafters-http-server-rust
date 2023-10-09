@@ -80,6 +80,7 @@ fn read_file(file_path:String) -> Result<String,i32> {
     match file_result {
         Ok(mut f)=>{
             let size = f.read_to_string(&mut content).unwrap_or(0);
+            println!("the content is ========= {}", content);
             Ok(content)
         },
         Err(e)=>{
