@@ -187,12 +187,20 @@ fn dispatch(req: Request, stream: TcpStream) {
             for e in CONFIG.iter() {
                 if e.name == "--directory"  {
                     if !e.value.is_empty(){
-                        let content = read_file(e.value.clone()+file_name).unwrap();
-                        resp_content = format!(
-                            "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n{}\r\n",
-                            content.len(),
-                            content
-                        );
+                        let content = read_file(e.value.clone()+file_name);
+                        match content {
+                            Ok(c) => {
+                                resp_content = format!(
+                                    "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n{}\r\n",
+                                    c.len(),
+                                    c
+                                );
+                            }
+                            Err(e) => {
+                                eprintln!("{}", e.to_string());
+                            }
+                        }
+
                     }else {
                         resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
                     };
