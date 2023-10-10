@@ -75,18 +75,13 @@ fn parse_env_params() ->Vec<EnvParam>{
 }
 
 fn read_file(file_path:String) -> Result<String,i32> {
-    let mut file_result = File::open(file_path.clone());
-    let mut content = String::new();
-    match file_result {
-        Ok(mut f)=>{
-            let size = f.read_to_string(&mut content).unwrap_or(0);
-            println!("the content is ========= {}", content);
-            Ok(content)
-        },
-        Err(e)=>{
-            eprintln!("can open the file under the path {}", file_path);
-            Err(500)
-        }
+    if File::try_exists(file_path).unwrap() {
+        let mut content = String::new();
+        File::open(file_path.clone()).unwrap().read_to_string(&mut content).expect("some error!");
+        Ok(content)
+    }else {
+        println!("the file path {} doesn't exist", file_path);
+        Err(404)
     }
 }
 
