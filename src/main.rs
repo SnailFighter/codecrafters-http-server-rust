@@ -4,7 +4,6 @@ use std::io::{ErrorKind, Read, Write};
 use std::{fs, thread};
 use std::fs::File;
 use std::env;
-use itertools::Itertools;
 
 static mut CONFIG: Vec<EnvParam> = Vec::new();
 
@@ -174,7 +173,7 @@ fn dispatch(req: Request, stream: TcpStream) {
             req.user_agent
         );
     }else if path.starts_with("/files"){
-        let path_param = path.split("/").collect_vec();
+        let path_param : Vec<_>= path.split("/").collect();
         let file_name = if path_param.len()>1 {
             path_param[2]
         }else { "" };
@@ -193,6 +192,7 @@ fn dispatch(req: Request, stream: TcpStream) {
                             }
                             Err(e) => {
                                 eprintln!("{}", e.to_string());
+                                resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
                             }
                         }
 
