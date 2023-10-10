@@ -1,7 +1,7 @@
 // Uncomment this block to pass the first stage
 use std::net::{TcpListener, TcpStream};
 use std::io::{ErrorKind, Read, Write};
-use std::thread;
+use std::{fs, thread};
 use std::fs::File;
 use std::env;
 use itertools::Itertools;
@@ -75,7 +75,7 @@ fn parse_env_params() ->Vec<EnvParam>{
 }
 
 fn read_file(file_path:String) -> Result<String,i32> {
-    if File::try_exists(file_path).unwrap() {
+    if std::path::Path::new(file_path.as_str()).exists(){
         let mut content = String::new();
         File::open(file_path.clone()).unwrap().read_to_string(&mut content).expect("some error!");
         Ok(content)
