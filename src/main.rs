@@ -268,7 +268,7 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
                     if !e.value.is_empty(){
                         let mut file = File::create(Path::new(format!("{}/{}", e.value, file_name).as_str())).expect("TODO: panic message");
                         file.write_all(req.body.content.as_bytes()).unwrap();
-                        resp_content = "HTTP/1.1 201 \r\n\r\n".to_string()
+                        resp_content = "HTTP/1.1 201\r\nContent-Type: text/plain".to_string()
                     }else {
                         resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
                     };
