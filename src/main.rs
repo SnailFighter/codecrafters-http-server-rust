@@ -227,7 +227,7 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
         );
     }else if path.starts_with("/files"){
 
-        if req.header.method == "Get" {
+        if req.header.method == "GET" {
             println!("/files   get  ");
             let path_param : Vec<_>= path.split("/").collect();
             let file_name = if path_param.len()>1 {
