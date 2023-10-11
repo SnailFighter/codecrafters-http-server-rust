@@ -209,7 +209,7 @@ fn pre_handle_path(mut path: String, mut req: Request<String>) -> Request<String
 }
 unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
     let path = req.header.path;
-    let mut resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string();
+    let mut resp_content = "HTTP/1.1 200\r\n\r\n".to_string();
     if path == "/" {
         resp_content =  "HTTP/1.1 200 \r\n\r\n".to_string();
     } else if path.starts_with("/echo/") {
@@ -270,7 +270,7 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
                         file.write_all(req.body.content.as_bytes()).unwrap();
 
                     }else {
-                        resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
+                        resp_content = "HTTP/resp_content = "";1.1 404  Not Found\r\n\r\n".to_string()
                     };
 
                 };
