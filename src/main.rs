@@ -226,7 +226,9 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
             req.header.user_agent
         );
     }else if path.starts_with("/files"){
+
         if req.header.method == "Get" {
+            println!("/files   get  ");
             let path_param : Vec<_>= path.split("/").collect();
             let file_name = if path_param.len()>1 {
                 path_param[2]
@@ -236,7 +238,7 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
                     if e.name == "--directory"  {
                         if !e.value.is_empty(){
                             let content = read_file(e.value.clone()+file_name);
-                            println!("/files   get ");
+                            println!("/files   get file in dir ");
                             match content {
                                 Ok(c) => {
                                     resp_content = format!(
