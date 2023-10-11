@@ -113,7 +113,9 @@ fn parse_request(mut stream: &TcpStream) ->Request<String> {
 
     println!("accepted new connection");
     let mut data = vec![0u8,0];
-    let mut buffer = [0; 256];
+    let mut buffer = [0; 1024*1024];
+    stream.read(&mut buffer).unwrap();
+    let mut request = String::from_utf8(buffer.to_vec()).unwrap();
     /*loop {
         if if_data_read_end(&data) {
             break;
@@ -127,7 +129,7 @@ fn parse_request(mut stream: &TcpStream) ->Request<String> {
         }
     };*/
     //let request = String::from_utf8(data).unwrap();
-    let mut reader = BufReader::new(stream);
+    /*let mut reader = BufReader::new(stream);
     let mut request =  String::new();
 
     loop{
@@ -135,7 +137,7 @@ fn parse_request(mut stream: &TcpStream) ->Request<String> {
         if request.ends_with("\r\n\r\n") {
             break;
         }
-    }
+    }*/
 
     let v: Vec<&str> = request.lines().map(|line|line).collect();
     let mut is_start_body = false;
@@ -172,12 +174,12 @@ fn parse_request(mut stream: &TcpStream) ->Request<String> {
         }
     }
 
-    loop{
+    /*loop{
         if body.len() as i32 == content_length {
             break;
         }
         reader.read_line(&mut body).unwrap();
-    }
+    }*/
 
 
     let header = Header {
@@ -207,7 +209,7 @@ fn pre_handle_path(mut path: String, mut req: Request<String>) -> Request<String
 }
 unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
     let path = req.header.path;
-    let mut resp_content = "".to_string();
+    let mut resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string();
     if path == "/" {
         resp_content =  "HTTP/1.1 200 \r\n\r\n".to_string();
     } else if path.starts_with("/echo/") {
