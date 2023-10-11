@@ -249,7 +249,7 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
                                     println!("/files   ok ");
                                 }
                                 Err(e) => {
-                                    eprintln!("{}", e.to_string());
+                                    eprintln!("get file error {}", e.to_string());
                                     resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
                                 }
                             }
