@@ -236,6 +236,7 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
                     if e.name == "--directory"  {
                         if !e.value.is_empty(){
                             let content = read_file(e.value.clone()+file_name);
+                            println!("/files   get ");
                             match content {
                                 Ok(c) => {
                                     resp_content = format!(
@@ -243,6 +244,7 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
                                         c.len(),
                                         c
                                     );
+                                    println!("/files   ok ");
                                 }
                                 Err(e) => {
                                     eprintln!("{}", e.to_string());
