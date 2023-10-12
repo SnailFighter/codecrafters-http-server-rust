@@ -274,7 +274,7 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
                 //if e.name == "--directory"  {
                     //if !e.value.is_empty(){
                         let mut file = File::create(Path::new(format!("{}/{}", "./", file_name).as_str())).expect("TODO: panic message");
-                        file.write_all(req.body.content.as_bytes()).expect("error wirte");
+                        file.write_all(req.body.content.clone().as_bytes()).expect("error wirte");
                         file.flush().expect("error");
                         println!("write all content");
                         resp_content = "HTTP/1.1 201\r\nContent-Type: text/plain".to_string()
