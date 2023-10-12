@@ -282,7 +282,6 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
                     }else {
                         resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
                     };
-
                 };
             }
 
