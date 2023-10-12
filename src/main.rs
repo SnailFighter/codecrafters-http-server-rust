@@ -277,7 +277,7 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
                         fs::write(file_path,req.body.content.clone()).expect("error wirte");
                        // file.flush().expect("error");
                         println!("write all content");
-                        resp_content = "HTTP/1.1 201\r\nContent-Type: text/plain".to_string()
+                        resp_content = "HTTP/1.1 201".to_string()
                    // }else {
                    //     resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
                    // };
