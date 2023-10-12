@@ -171,6 +171,9 @@ fn parse_request(mut stream: &TcpStream) ->Request<String> {
 
         }else if  line.is_empty() && !is_start_body {
             is_start_body = true;
+        } else if is_start_body {
+
+            body = body+ line;
         }
     }
 
@@ -267,19 +270,20 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
             let file_name = if path_param.len()>1 {
                 path_param[2]
             }else { "unname" };
-            for e in CONFIG.iter() {
-                if e.name == "--directory"  {
-                    if !e.value.is_empty(){
-                        let mut file = File::create(Path::new(format!("{}/{}", e.value, file_name).as_str())).expect("TODO: panic message");
-                        file.write_all(req.body.content.as_bytes()).unwrap();
+            //for e in CONFIG.iter() {
+                //if e.name == "--directory"  {
+                    //if !e.value.is_empty(){
+                        let mut file = File::create(Path::new(format!("{}/{}", "./", file_name).as_str())).expect("TODO: panic message");
+                        file.write_all(req.body.content.as_bytes()).expect("error wirte");
+                        file.flush().expect("error");
                         println!("write all content");
                         resp_content = "HTTP/1.1 201\r\nContent-Type: text/plain".to_string()
-                    }else {
-                        resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
-                    };
+                   // }else {
+                   //     resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
+                   // };
 
-                };
-            }
+               // };
+            //}
 
         }
 
