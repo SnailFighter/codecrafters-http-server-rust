@@ -139,7 +139,7 @@ fn parse_request(mut stream: &TcpStream) ->Request<String> {
         }
     }*/
 
-    let v: Vec<&str> = request.lines().map(|line|line).collect();
+    let v: Vec<&str> = request.lines().map(|line|line.trim()).collect();
     let mut is_start_body = false;
     for line in v {
         if !line.is_empty() && !is_start_body {
@@ -172,8 +172,7 @@ fn parse_request(mut stream: &TcpStream) ->Request<String> {
         }else if  line.is_empty() && !is_start_body {
             is_start_body = true;
         } else if is_start_body {
-
-            body = body+ line;
+            body = body + &line[..content_length as usize];
         }
     }
 
@@ -273,9 +272,10 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
             //for e in CONFIG.iter() {
                 //if e.name == "--directory"  {
                     //if !e.value.is_empty(){
-                        let mut file = File::create(Path::new(format!("{}/{}", "./", file_name).as_str())).expect("TODO: panic message");
-                        file.write_all(req.body.content.clone().as_bytes()).expect("error wirte");
-                        file.flush().expect("error");
+                        let file_path = format!("{}/{}", "./", file_name);
+                        let mut file = File::create(Path::new(file_path.as_str())).expect("TODO: panic message");
+                        fs::write(file_path,req.body.content.clone()).expect("error wirte");
+                       // file.flush().expect("error");
                         println!("write all content");
                         resp_content = "HTTP/1.1 201\r\nContent-Type: text/plain".to_string()
                    // }else {
