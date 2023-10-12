@@ -269,21 +269,22 @@ unsafe fn dispatch(req: Request<String>, stream: TcpStream) {
             let file_name = if path_param.len()>1 {
                 path_param[2]
             }else { "unname" };
-            //for e in CONFIG.iter() {
-                //if e.name == "--directory"  {
-                    //if !e.value.is_empty(){
-                        let file_path = format!("{}/{}", "./", file_name);
+            for e in CONFIG.iter() {
+                if e.name == "--directory"  {
+                    if !e.value.is_empty(){
+
+                        let file_path = format!("{}/{}", e.value.clone(), file_name);
                         let mut file = File::create(Path::new(file_path.as_str())).expect("TODO: panic message");
                         fs::write(file_path,req.body.content.clone()).expect("error wirte");
                        // file.flush().expect("error");
                         println!("write all content");
                         resp_content = "HTTP/1.1 201\r\n\r\n".to_string()
-                   // }else {
-                   //     resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
-                   // };
+                    }else {
+                        resp_content = "HTTP/1.1 404  Not Found\r\n\r\n".to_string()
+                    };
 
-               // };
-            //}
+                };
+            }
 
         }
 
